@@ -1,49 +1,48 @@
 # No additional 3rd party external libraries are allowed
-from tkinter import Y
+from typing import final
 import numpy as np
 
-def relu(x):
-     # TODO
-    y = 0 if x < 0 else x
-    return y
-    # raise NotImplementedError("ReLU function not implemented")
+def relu(x):   
+    return np.maximum(x, 0)
 
 def relu_grad(z):
-     # TODO
-    y_prime = 0 if z < 0 else 1
-    return y_prime
-    # raise NotImplementedError("Gradient of ReLU function not implemented")
+    z[z<=0] = 0
+    z[z>0] = 1
+    return z
 
 def sigmoid(x):
-    # TODO
-    y = 1/(1 + np.exp(-x))
-    return y
-    # raise NotImplementedError("Sigmoid function not implemented")
-
+    return 1/(1 + np.exp(-x))
+    
 def sigmoid_grad(z):
-    # TODO
-    y_prime = sigmoid(z) * (1 - sigmoid(z))
-    return y_prime
-    # raise NotImplementedError("Gradient of Sigmoid function not implemented")
+    return z * (1 - z)
 
 def softmax(x):
-    # TODO
-    raise NotImplementedError("Softmax function not implemented")
-
+    #The final probability vector
+    final_probability = np.zeros((x.shape[0],x.shape[1]))
+    #Iterate over each vector in the inpux, calculate exponent of each value 
+    #in the vecor and normalize it. Then, update the final_probability.
+    for i in range(0,x.shape[0]):
+        vector = x[i]
+        exp=np.exp(vector)
+        probability=exp/np.sum(exp)
+        final_probability[i]=probability
+    return final_probability
+    
 def softmax_grad(z):
-    # TODO
-    raise NotImplementedError("Gradient of Softmax function not implemented")
+    #Create a jacobean matrix of the n x n size where n is the length of the input
+    #vector z.
+    jacobian_m = np.zeros((len(z[0]),len(z[0])))
+    #Iterate over each position in the Jacobian vector and perform calculations.
+    for i in range(len(jacobian_m)):
+        for j in range(len(jacobian_m)):
+            if i == j:
+                jacobian_m[i][j] = z[0][i] * (1 - z[0][i])
+            else: 
+                jacobian_m[i][j] = -z[0][i] * z[0][j]
+    return jacobian_m
 
 def tanh(x):
-    # TODO
-    y = (2/(1 + np.exp(-2*x)))-1
-    return y
-    # raise NotImplementedError("Tanh function not implemented")
+    return (2/(1 + np.exp(-2*x)))-1
 
 def tanh_grad(z):
-    # TODO
-    y = tanh(z)
-    y_prime = 1 - y**2
-    return y_prime
-
-    # raise NotImplementedError("Gradient of Tanh function not implemented")
+    return 1 - tanh(z)**2

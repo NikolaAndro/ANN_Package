@@ -1,38 +1,34 @@
 # No additional 3rd party external libraries are allowed
+from re import M
 import numpy as np
 
-def linear(num_inputs, num_outputs):
-    # Perceptron: y = f(Wx - b)
-    # Initialize variables
-    W = np.zeros((num_outputs, num_inputs), dtype="f")
-    b = np.zeros((num_outputs, 1), dtype = "f")
-
+def linear(x, W):
     # TODO
-    raise NotImplementedError("Linear function not implemented")
-
-def linear_grad(num_inputs, num_outputs):
-    # Perceptron: y = f(Wx - b)
-    # Initialize variables
-    W = np.zeros((num_outputs, num_inputs), dtype="f")
-    b = np.zeros((num_outputs, 1), dtype = "f")
-
+    y = W @ x
+    print("linear: ",y)
+    return y
+    # raise NotImplementedError("Linear function not implemented")
+    
+def linear_grad(x):
     # TODO
-    raise NotImplementedError("Gradient of Linear function not implemented")
+    print("linear_grad: ", x)
+    return x
+    # raise NotImplementedError("Gradient of Linear function not implemented")
 
-def radial(num_inputs, num_outputs):
-    # Perceptron: y = f(Wx - b)
-    # Initialize variables
-    W = np.zeros((num_outputs, num_inputs), dtype="f")
-    b = np.zeros((num_outputs, 1), dtype = "f")
-
+def radial(x, W):
     # TODO
-    raise NotImplementedError("Radial Basis function not implemented")
-
-def radial_grad(num_inputs, num_outputs):
-    # Perceptron: y = f(Wx - b)
-    # Initialize variables
-    W = np.zeros((num_outputs, num_inputs), dtype="f")
-    b = np.zeros((num_outputs, 1), dtype = "f")
-
+    y = np.sqrt(np.sum((x - W)**2))
+    # y = np.sqrt(np.matmul((x-W),(x-W).T))
+    print("radial: ",y)
+    return y
+    # raise NotImplementedError("Radial Basis function not implemented")
+    
+def radial_grad(x, W):
     # TODO
-    raise NotImplementedError("Gradient of Radial Basis function not implemented")
+    # delta_y = -2 * loss_grad_y * (x - W)
+    # delta_y = ((x-W)/loss_grad_y)
+    y = radial(x,W)
+    delta_y = (x-W)/y
+    print("radial_grad: ", delta_y)
+    return delta_y
+    # raise NotImplementedError("Gradient of Radial Basis function not implemented")
