@@ -3,18 +3,28 @@ import numpy as np
 from numpy.linalg import norm 
 
 def l2(y, y_hat):
-    # TODO
-    raise NotImplementedError("l2 loss function not implemented")
+    """L2 Loss Function is used to minimize the error 
+    which is the sum of the all the squared differences between 
+    the true value and the predicted value."""
+    # This is MSE - mean squared error loss function
+    # Norm Function
+    z = np.sqrt(np.sum((y-y_hat)**2))
+    return z
 
 def l2_grad(y, y_hat):
-    # TODO
-    raise NotImplementedError("Gradiant of l2 loss function not implemented")
+    """Gradient of l2 loss function"""
+    z = l2(y,y_hat)
+    delta_z = (1/z)*(y-y_hat)
+    return delta_z
 
-def cross_entropy(A, Y):
+def cross_entropy(y, y_hat):
     # TODO
-    raise NotImplementedError("Cross entropy loss function not implemented")
+    # loss=-np.sum(A*np.log(Y))
+    # return loss/float(Y.shape[0])
+    #  -(y * np.log(yhat) + (1 - y) * np.log(1 - yhat)).mean()
+    return  -y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)
+    # raise NotImplementedError("Cross entropy loss function not implemented")
     
 def cross_entropy_grad(y, y_hat):
-    # TODO
-    raise NotImplementedError("Gradiant of Cross entropy loss function not implemented")
-    
+    delta_z = ((1-y)/(1-y_hat))-(y/y_hat)
+    return delta_z    
