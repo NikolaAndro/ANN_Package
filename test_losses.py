@@ -27,10 +27,17 @@ def test_l2_grad_1():
         [[ 0.,  -0.70710677,  0.70710677]], dtype='f')
     RESULTS["TEST_L2_GRAD_1"] = np.allclose(l2_grad_.round(8), exp_l2_grad)
 
-# def test_cross_entrophy():
-#     #TODO
-#     RESULTS["TEST_CROSS_ENTROPHY"] = False 
-#     pass
+def test_cross_entrophy():
+    y = np.array([
+        [1., 0., 0., 1.]], dtype='f')
+    
+    y_hat = np.array([
+        [0.8 , 0.2, 0.6, 0.9]], dtype='f')
+    cross_ent = cross_entropy(y, y_hat).round(8)
+    exp_cross_ent = np.array([[0.22314353,0.22314353,0.9162908,0.10536055]])
+    # print(cross_ent) 
+    RESULTS["TEST_CROSS_ENTROPY"] = np.allclose(cross_ent.round(8), exp_cross_ent) 
+
 
 # def test_cross_entrophy_grad():
 #     #TODO
@@ -40,7 +47,7 @@ def test_l2_grad_1():
 if __name__ == "__main__":
     test_l2()
     test_l2_grad_1()
-    # test_cross_entrophy()
+    test_cross_entrophy()
     # test_cross_entrophy_grad()
 
     result =  True

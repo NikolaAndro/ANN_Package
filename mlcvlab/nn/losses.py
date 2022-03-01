@@ -18,13 +18,10 @@ def l2_grad(y, y_hat):
     return delta_z
 
 def cross_entropy(y, y_hat):
-    # TODO
-    # loss=-np.sum(A*np.log(Y))
-    # return loss/float(Y.shape[0])
-    #  -(y * np.log(yhat) + (1 - y) * np.log(1 - yhat)).mean()
-    return  -y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)
-    # raise NotImplementedError("Cross entropy loss function not implemented")
-    
+    '''Calculates binary cross entropy. '''
+    # Calculate the basic equation for cross entropy
+    return  -y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)   
+
 def cross_entropy_grad(y, y_hat):
     delta_z = ((1-y)/(1-y_hat))-(y/y_hat)
     return delta_z    

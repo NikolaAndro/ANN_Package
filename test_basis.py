@@ -42,7 +42,7 @@ def test_radial():
         [10., 21., 29.]], dtype='f')
     radial_ = radial(y, y_hat)
     exp_radial_ = 2.0
-    # print("radial : ", radial_)
+    print("radial : ", radial_)
     RESULTS["TEST_RADIAL_1"] = np.allclose(radial_.round(4), exp_radial_)
 
 def test_radial_grad():
