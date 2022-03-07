@@ -7,14 +7,16 @@ def l2(y, y_hat):
     which is the sum of the all the squared differences between 
     the true value and the predicted value."""
     # This is MSE - mean squared error loss function
-    # Norm Function
     z = np.sqrt(np.sum((y-y_hat)**2))
+    #z = np.reshape(z,(np.shape(y)))
     return z
 
 def l2_grad(y, y_hat):
     """Gradient of l2 loss function"""
     z = l2(y,y_hat)
     delta_z = (1/z)*(y-y_hat)
+    # Convert all nan to zeros
+    delta_z[np.isnan(delta_z)] = 0
     return delta_z
 
 def cross_entropy(y, y_hat):
