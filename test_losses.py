@@ -11,7 +11,7 @@ def test_l2():
         [10., 21., 29.]], dtype='f')
     
     l2_loss = l2(y, y_hat)
-    #print("l2_loss : ", l2_loss)
+    print("l2_loss : ", l2_loss)
     exp_l2_loss = 1.4142135
     RESULTS["TEST_L2"] = np.allclose(l2_loss.round(4), exp_l2_loss)
 
@@ -22,7 +22,7 @@ def test_l2_grad_1():
     y_hat = np.array([
         [10., 21., 29.]], dtype='f')
     l2_grad_ = l2_grad(y, y_hat)
-    # print(f"l2_grad : {l2_grad_}")
+    print(f"l2_grad : {l2_grad_}")
     exp_l2_grad = np.array(
         [[ 0.,  -0.70710677,  0.70710677]], dtype='f')
     RESULTS["TEST_L2_GRAD_1"] = np.allclose(l2_grad_.round(8), exp_l2_grad)
