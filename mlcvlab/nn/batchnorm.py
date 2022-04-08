@@ -52,7 +52,7 @@ def batchnorm(x, gamma, beta, eps, mode = 'test'):
         output_x = gamma * x_normalized + beta
 
         # Keep all this information in memory to be used for backprop
-        cache = (x_mean, x_variance, gamma)
+        cache = (x_normalized, x_mean, x_variance, gamma)
     
     elif mode =="test":
         x_normalized = (x - running_mean) / np.sqrt(running_variance + eps)
@@ -63,44 +63,45 @@ def batchnorm(x, gamma, beta, eps, mode = 'test'):
 
     return output_x, cache
 
-def batchnorm_grad(y, x, eps, cache):
+
+def batchnorm_grad(grad_l_wrt_y, input_x, eps, cache):
     """
     Backward pass for batch normalization.
     Inputs:
-    - y: Upstream derivatives, of shape (N, D)
-    - x: output_x from forward batchnorm function.
-    - gamma, beta, eps: from cache in forward batchnorm function.
+    - grad_l_wrt_y: gradient of the loss function
+    - input_x: input to the layer
+    - cache: x_normalized, x_mean, x_variance, gamma - from cache in forward batchnorm function.
     Returns a tuple of:
     - dx: Gradient with respect to inputs x, of shape (N, D)
     - dgamma: Gradient with respect to scale parameter gamma, of shape (D,)
     - dbeta: Gradient with respect to shift parameter beta, of shape (D,)
     """
     # num features
-    m = y.shape[0]
+    m = grad_l_wrt_y.shape[0]
 
     # get the variables from forward pass in cache 
-    x_mean, x_variance, gamma = cache
+    x_normalized, x_mean, x_variance, gamma = cache
 
     # Equation 1 from the backprop algorithm  from the original paper of batchnorm
     # partial derivative of L with respect to x_hat
-    pd_l_wrt_xhat = y * gamma
+    pd_l_wrt_xhat = grad_l_wrt_y * gamma
 
     # partial derivative of L with respect to gamma
     # pd (partial derivative)
-    pd_l_wrt_gamma =  (y * pd_l_wrt_xhat).sum(axis=0)
+    pd_l_wrt_gamma =  (grad_l_wrt_y * x_normalized).sum(axis=0)
 
     #partial derivative of l wrt beta
-    pd_l_wrt_beta = y.sum(axis=0)
+    pd_l_wrt_beta = grad_l_wrt_y.sum(axis=0)
 
     # partial derivativev of l wrt mean
     pd_l_wrt_mean = (pd_l_wrt_xhat * (-1 / np.sqrt(x_variance + eps)) ).sum(axis=0)
 
     # partial derivative of l wrt variance
-    pd_l_wrt_varance =  (pd_l_wrt_xhat * (x - x_mean) * (-0.5) * (x_variance + eps)**(-3/2)).sum(axis=0)
+    pd_l_wrt_varance =  (pd_l_wrt_xhat * (input_x - x_mean) * (-0.5) * (x_variance + eps)**(-3/2)).sum(axis=0)
 
     # partial derivative of l wrt x
     pd_l_wrt_x = pd_l_wrt_xhat * 1/np.sqrt(x_variance + eps) + pd_l_wrt_varance * \
-        (2*(x - x_mean) / m) + pd_l_wrt_mean * 1/m
+        (2*(input_x - x_mean) / m) + pd_l_wrt_mean * 1/m
 
     return pd_l_wrt_x, pd_l_wrt_gamma, pd_l_wrt_beta
 
