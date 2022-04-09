@@ -1,0 +1,135 @@
+# %% [markdown]
+# ### 1. Import Libraries
+
+# %%
+import os
+import sys
+import warnings
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from sklearn.datasets import fetch_openml
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# %matplotlib inline
+mpl.rc('axes', labelsize=14)
+mpl.rc('xtick', labelsize=12)
+mpl.rc('ytick', labelsize=12)
+
+# %% [markdown]
+# ### 2. Import from mlcblab
+
+# %%
+from mlcvlab.models.nn4 import NN4
+from mlcvlab.nn.losses import l2
+from mlcvlab.optim.sgd import SGD
+# TODO: Import all the necessary code from mlcvlab package as you need... 
+
+# %% [markdown]
+# ### 3. Set Seed
+
+# %%
+np.random.seed(42)
+
+# %% [markdown]
+# ### 4. Helper functions
+
+# %%
+def load_dataset():
+    '''Loads the whole dataset with true labels included.'''
+    x, y = fetch_openml("mnist_784", version=1, return_X_y=True, as_frame=False)
+    return x,y
+
+def prepare_data(x, y):
+    '''Converts 10-ary labels in binary labels. If even then label is 1 otherwise 0.'''
+    y = y.astype(int)
+    y = y.reshape(len(y),1)
+    y =  (y+1) % 2
+    return x, y
+
+def split_train_test(x,y):
+    '''Partitioning the dataset into 10,000 test samles and the remaining 60,000 as training samples. 
+    The shape  of the data will be M x N where M = 784 and N = 60000 for X and N = 10000 for y.'''   
+    X_train, X_test = x[:60000].T, x[60000:].T
+    y_train, y_test = y[:60000].T, y[60000:].T
+    
+    # adding -1 to the end of every x  as a bias term
+    bias_train = np.ones((1, np.shape(X_train)[1])) * -1
+    bias_test = np.ones((1, np.shape(X_test)[1])) * -1
+    
+    X_train = np.append(X_train, bias_train, axis = 0)
+    X_test = np.append(X_test, bias_test, axis = 0)
+    
+    return X_train, X_test, y_train, y_test
+
+def minibatch(X_train,y_train,K):
+    #TODO
+    # Batch Size: K
+    # X_train_batches, y_train_batches should be a list of lists of size K.
+    return X_train_batches, y_train_batches
+
+def initialize_model():
+    #TODO (Can use the similar approach used in HW1)
+    # e.g. He Initialization for W0-W2, Xavier Initialization for W3
+    # Also, initialize your model with a dropout parameter of 0.25 and use_batchnorm being true.
+    W0 = None
+    W1 = None
+    W2 = None
+    W3 = None
+    print(f"Size of W0 : {W0.shape}, Size of W1 : {W1.shape}, Size of W2 : {W2.shape}, Size of W3 : {W3.shape}")
+    four_layer_nn  = NN4()
+    four_layer_nn.layers[0].W = W0
+    four_layer_nn.layers[1].W = W1
+    four_layer_nn.layers[2].W = W2
+    four_layer_nn.layers[3].W = W3
+
+    return four_layer_nn
+
+def train_model(model, X_train_batches, y_train_batches):
+    #TODO : Call async_SGD and sync_SGD to train two versions of the same model. Compare their outcomes and runtime.
+    #Update both your models with final updated weights and return them
+    return model_async, model_sync
+
+def test_model(model, X_test, y_test):
+    accuracy = None
+    #TODO: Call model.nn4 to test model.
+    return accuracy
+
+# %% [markdown]
+# ### 5. Run the program
+
+# %%
+
+#load data
+x, y = load_dataset()
+
+#prepare data
+x, y = prepare_data(x,y)
+
+# split data set
+X_train, X_test, y_train, y_test = split_train_test(x,y)
+
+#initialize model
+model = initialize_model()
+
+X_train_batches, y_train_batches = minibatch(X_train,y_train,K)
+
+#training model
+model_async, model_sync = train_model(model, X_train_batches, y_train_batches)
+print(f"Completed training, now testing...")   
+
+#testing model
+accuracy_async = test_model(model_async, X_test, y_test)
+print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}")   
+
+accuracy_sync = test_model(model_sync, X_test, y_test)
+print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 
+
+# %%
+
+
+
