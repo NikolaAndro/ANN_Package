@@ -80,15 +80,16 @@ class NN2():
         # replace the randomly picked W with one-hot vector
         self.layers[radnom_W_index].W = W
         self.W[radnom_W_index]=W
-        sum_img_emp_loss = [np.zeros((np.shape(self.layers[0].W)[0], np.shape(self.layers[0].W)[1])),np.zeros((np.shape(self.layers[1].W)[1],np.shape(self.layers[1].W)[0]))]
+        sum_img_emp_loss = [np.zeros((np.shape(self.layers[0].W)[0], \
+            np.shape(self.layers[0].W)[1])),\
+                np.zeros((np.shape(self.layers[1].W)[1],np.shape(self.layers[1].W)[0]))]
         
-        a = 0
         #get the empirical loss image by image
         for tx, ty in zip(train_X.T,train_y.T):
             emp_loss = self.grad( tx, ty, W)
             sum_img_emp_loss[0] += emp_loss[0]
             sum_img_emp_loss[1] += emp_loss[1]
-            a = a + 1
+        
         
         sum_img_emp_loss[1] = sum_img_emp_loss[1].T
         # calculate the mean for both layers

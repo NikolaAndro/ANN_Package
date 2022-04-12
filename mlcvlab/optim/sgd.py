@@ -1,5 +1,4 @@
 # No additional 3rd party external libraries are allowed
-from tkinter import W
 import numpy as np
 
 #lr = learning rate / step size

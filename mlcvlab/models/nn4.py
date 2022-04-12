@@ -82,8 +82,15 @@ class NN4():
         else:
             raise NotImplementedError("NN4 gradient (backpropagation) Without Batchnorm model not implemented")    
 
-    def emp_loss_grad(self, train_X, train_y, layer):
-        # emp_loss_ = 0
-        # emp_loss_grad_ = None
-        # TODO
-        raise NotImplementedError("NN4 Emperical Loss grad not implemented")
+    def emp_loss_grad(self, train_X, train_y, radnom_W_index):
+        '''Calculates the gradient of empirical loss function for NN4.'''
+        # number of iterations
+        N = np.shape(train_X)[1]
+
+        # replace the randomly picked W with one-hot vector
+        self.layers[radnom_W_index].W = W
+        self.W[radnom_W_index]=W
+        sum_img_emp_loss = [np.zeros((np.shape(self.layers[0].W)[0], \
+            np.shape(self.layers[0].W)[1])),\
+                np.zeros((np.shape(self.layers[1].W)[1],np.shape(self.layers[1].W)[0]))]
+
