@@ -71,7 +71,13 @@ class NN4():
     def grad(self, x, y):
         # TODO  
         if self.use_batchnorm:
-            raise NotImplementedError("NN4 gradient (backpropagation) Batchnorm model not implemented")
+            # set up the size of the dimensions. Storing in one variable not to have to retrieve it multiple times.
+            M_1 = np.shape(self.layers[0].W)[1]
+            M_2 = np.shape(self.layers[1].W)[1]
+            M_3 = np.shape(self.layers[2].W)[1]
+            M_4 = np.shape(self.layers[3].W)[1]
+            K = np.shape(self.layers[0].W)[0]
+
 
         else:
             raise NotImplementedError("NN4 gradient (backpropagation) Without Batchnorm model not implemented")    
