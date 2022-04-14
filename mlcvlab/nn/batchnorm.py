@@ -5,10 +5,10 @@ import numpy as np
 from regex import E
 
 
-def batchnorm(x, gamma, beta, eps, mode = 'test'):
+def batchnorm(z_tilda, gamma, beta, eps, mode = 'test'):
     '''
     Input:
-    - x: Data of shape (M, D)
+    - z_tilda: Data of shape (M, D)
     - gamma: Scale parameter of shape (D,)
     - beta: Shift paremeter of shape (D,)
     - mode: 'train' or 'test'; required
@@ -27,41 +27,41 @@ def batchnorm(x, gamma, beta, eps, mode = 'test'):
     momentum = 0.9
 
     # Initialize running variance and mean for backprop
-    running_mean = np.zeros(x.shape()[1], dtype=x.dtype)
-    running_variance = np.zeros(x.shape()[1], dtype=x.dtype)
+    running_mean = np.zeros(z_tilda.shape()[1], dtype=z_tilda.dtype)
+    running_variance = np.zeros(z_tilda.shape()[1], dtype=z_tilda.dtype)
 
     if mode == 'train':
 
         # Find the mean of the minibatch
-        x_mean = x.mean(axis = 0)
+        z_tilda_mean = z_tilda.mean(axis = 0)
 
         # Find the variance of the minibatch
-        x_variance = x.var(axis=0)
+        z_tilda_variance = z_tilda.var(axis=0)
 
         # Find the running mean and variance for the backward propagation
-        running_mean = momentum * running_mean + (1  - momentum) * x_mean
-        running_variance = momentum * running_variance + (1  - momentum) * x_variance
+        running_mean = momentum * running_mean + (1  - momentum) * z_tilda_mean
+        running_variance = momentum * running_variance + (1  - momentum) * z_tilda_variance
 
 
         # Normalize the layer
-        x_centered = x - x_mean
-        standard = np.sqrt(x_variance + eps)
-        x_normalized = x_centered / standard
+        z_tilda_centered = z_tilda - z_tilda_mean
+        standard = np.sqrt(z_tilda_variance + eps)
+        z_tilda_normalized = z_tilda_centered / standard
 
         # Scale and shift using gamma and beta
-        output_x = gamma * x_normalized + beta
+        output_batch = gamma * z_tilda_normalized + beta
 
         # Keep all this information in memory to be used for backprop
-        cache = (x_normalized, x_mean, x_variance, gamma)
+        cache = (z_tilda_normalized, z_tilda_mean, z_tilda_variance, gamma)
     
     elif mode =="test":
-        x_normalized = (x - running_mean) / np.sqrt(running_variance + eps)
-        output_x = gamma + x_normalized + beta
+        z_tilda_normalized = (z_tilda - running_mean) / np.sqrt(running_variance + eps)
+        output_batch = gamma + z_tilda_normalized + beta
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 
 
-    return output_x, cache
+    return output_batch, cache
 
 
 def batchnorm_grad(grad_l_wrt_y, input_x, eps, cache):

@@ -49,7 +49,6 @@ class NN2():
         grad_z1_tilda_wrt_z1 = np.zeros((M,M)) # 120 x 120
         for i in range(np.shape(z_1_tilda)[0]):
             z_ij = np.dot(int(z_1_tilda[i]), z_1)
-            grad_z1_tilda_wrt_z1[int(i)] = z_ij.T
         grad_l_wrt_z1 = np.dot(grad_l_wrt_z1_tilda.T, grad_z1_tilda_wrt_z1) # 1 x 120
         
         
