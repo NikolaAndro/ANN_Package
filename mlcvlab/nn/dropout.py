@@ -4,7 +4,7 @@ import numpy as np
 def dropout(b, p, mode='test'):
     '''
     Output : should return a tuple containing 
-     - b : b is the output of batch norm layern.
+     - b : b is the output of batch norm layern. dim: M x 1
      - p : Dropout param
      - mode : 'test' or 'train'
      - mask : 
@@ -16,17 +16,15 @@ def dropout(b, p, mode='test'):
     # TODO Implement logic for both 'test' and 'train' modes.
     if mode == 'train':
         # Mask for the dropout. List of binomial distribution in size of x.
-        # mask = [int(np.random.binomial(n=1, p=p, size=1)) for q in range(len(z))]
-        mask = np.random.binomial(1, p, size=b.shape) 
+        mask = np.random.binomial(1, p, size=b.shape) # dim: M x 1
         # For every distribution == 1 in hte mask, make that element of x = 0.
-        # z_drop = [0 if mask[index] == 1 else z[index] for index in range(len(z))]
-        b_drop = b * mask
+        b_drop = b * mask  # dim: M x 1
 
     elif mode == 'test':
         # No mask in testing mode since we want to keep all the nodes active. 
         # What we need to do is to make it matches the training phase expectation, so we scale the layer output with p.
         mask = None
-        b_drop = b * p
+        b_drop = b * p # dim: M x 1
     
     return b_drop, p, mode, mask
 
