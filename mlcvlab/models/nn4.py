@@ -1,3 +1,4 @@
+from html2text import element_style
 import numpy as np
 from mlcvlab.nn.losses import l2, l2_grad
 from mlcvlab.nn.basis import linear, linear_grad
@@ -212,20 +213,74 @@ class NN4():
 
         grad_l_wrt_w2 = np.dot(grad_l_wrt_z2,grad_z2_wrt_w2)    # dim: 1 x M2 .  M2 x M1 x M2=> 1 x M1 x M2
         # reshape the dimentsions from 1 x M1 x M2 to just M1 x M2
-        M2,M3 = self.layers[1].W
-        grad_l_wrt_w2 = grad_l_wrt_w2.reshape(M2,M3)
+        M1,M2 = np.shape(self.layers[1].W)
+        grad_l_wrt_w2 = grad_l_wrt_w2.reshape(M1,M2)
 
         return grad_l_wrt_w2, grad_l_wrt_y1, grad_gamma_2, grad_beta_2
 
-    def layer_1_grad(self, grad_l_wrt_w4 ):
-        '''Computes and returns the gradient for the 1st layer.'''
-        pass
+    def layer_n_grad(self, layer_number, eps, grad_l_wrt_yn = 1,  **kwargs):
+        '''Computes and returns the gradient for the 2nd layer.
+        Parameters:
+        - grad_l_wrt_yn : dim: 1 x M (no need for transpose)
+        - layer_number : starts at 
+        '''
+        if(layer_number != 4):
+            y = self.layers[layer_number - 1].y_out #dim: M x 1
+            mask = self.layers[layer_number - 1].y_out[3] # result of dropout layer is tuple (z_drop, p, mode, mask) dim: M x 1
+            grad_y_wrt_b = dropout_grad(y,mask) # M x M diagonal matrix of mask
+            # grad_l_wrt_y is already transposed when returned from layer_n_grad()
+            # grad_l_wrt_y => 1 x M
+            # grad_y_wrt_b => M x M
+            grad_l_wrt_b = np.dot(grad_l_wrt_yn, grad_y_wrt_b) # dim: 1 x M
+
+            #******** updates for batch norm gamma and beta *******
+            grad_b_wrt_z_tilda, grad_gamma, grad_beta = batchnorm_grad(grad_l_wrt_b.T,self.layers[layer_number - 1].z_tilda, eps, self.layers[layer_number - 1].batch_norm[1]) 
+            # diagonalize grad_b_wrt_z_tilda
+            grad_b_wrt_z_tilda = grad_b_wrt_z_tilda * np.identity(np.shape(grad_b_wrt_z_tilda)[0]) # dim: M x M
+            grad_l_wrt_z_tilda = np.dot(grad_l_wrt_b,grad_b_wrt_z_tilda) # dim: 1 x M . 
+
+            grad_z_tilda_wrt_z =  relu_grad(self.layers[layer_number - 1].z)   # M x 1
+            grad_z_tilda_wrt_z = grad_z_tilda_wrt_z *  np.identity(np.shape(grad_z_tilda_wrt_z)[0])# diagonalize to amke it M x M
+            grad_l_wrt_z = np.dot(grad_l_wrt_z_tilda,grad_z_tilda_wrt_z) # 1 x M . M x M => 1 x M
+
+
+            # When we reach the layer 1, we do not need this computation
+            if layer_number != 1:
+                grad_z_wrt_y  = self.layers[layer_number - 1].W.T  # dim: M x Mx
+                grad_l_wrt_y = np.dot(grad_l_wrt_z, grad_z_wrt_y) # dim: 1 x M . M x Mx => 1 x Mx 
+
+            # *************** Weights *************
+            grad_z_wrt_w = [] # dim: M x Mx x M
+            for z in range(self.layers[layer_number - 1].z):
+                grad_z_wrt_w.append(np.dot(z, self.layers[layer_number - 1].W)) # W-> Mx x M ; z = 1x1
+
+            grad_l_wrt_w = np.dot(grad_l_wrt_z,grad_z_wrt_w)    # dim: 1 x M .  M x Mx x M=> 1 x Mx x M
+            # reshape the dimentsions from 1 x Mx x M to just Mx x M
+            Mx,M = np.shape(self.layers[layer_number - 1].W)
+            grad_l_wrt_w = grad_l_wrt_w.reshape(Mx,M)
+
+            # Dimensions:
+            # grad_l_wrt_w - Mx x M
+            # grad_l_wrt_y - 1 x Mx
+            # grad_gamma, grad_beta - scalars
+            if layer_number != 1:
+                return grad_l_wrt_w, grad_l_wrt_y, grad_gamma, grad_beta
+            else:
+                return grad_l_wrt_w, grad_gamma, grad_beta
+        else:
+            return self.layer_4_grad(kwargs['z_4'],kwargs['y'],kwargs['y_hat'])
+        
         
 
 
     
-    def grad(self, x, y): 
-        '''Returns a gradient for nn4 as a tuple of grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, and grad_l_wrt_w4.'''
+    def grad(self, x, y, eps): 
+        '''Returns a gradient for nn4 as a tuple of grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, and grad_l_wrt_w4.
+        and it will also calculate the change in gamma and beta for every layer.
+        Parameters:
+        - x : training x
+        - y : training y
+        - eps : epsilon used in computations'''
         if self.use_batchnorm:
             # set up the size of the dimensions. Storing in one variable not to have to retrieve it multiple times.
             # M_1 = np.shape(self.layers[0].W)[1]
@@ -236,9 +291,20 @@ class NN4():
             # Further set up
             y_hat = self.layers[3].z_tilda
 
-            grad_l_wrt_w4 = self.layer_4_grad(self.layers[3].z,y,y_hat)
+            grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_n_grad(4, eps, z_4 = self.layers[3].z,y=y,y_hat = y_hat)
 
-            grad_l_wrt_w3 = self.layer_3_grad(grad_l_wrt_w4)
+            grad_l_wrt_w3, grad_l_wrt_y2_transpose, grad_gamma_3, grad_beta_3 = self.layer_n_grad(3,eps,grad_l_wrt_y3_transpose)
+
+            grad_l_wrt_w2, grad_l_wrt_y1_transpose, grad_gamma_2, grad_beta_2 = self.layer_n_grad(2,eps,grad_l_wrt_y2_transpose)
+
+            grad_l_wrt_w1, grad_gamma_1, grad_beta_1 = self.layer_n_grad(1,eps,grad_l_wrt_y1_transpose)
+
+            # Collect the gradient of the weights for each  layer
+            weights_grad = [grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4]
+            gamma_beta_grad = [(grad_gamma_1, grad_beta_1),(grad_gamma_2, grad_beta_2),(grad_gamma_3, grad_beta_3)]
+
+            return weights_grad, gamma_beta_grad
+
 
 
 
