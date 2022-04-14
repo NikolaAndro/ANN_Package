@@ -305,14 +305,6 @@ class NN4():
 
             return weights_grad, gamma_beta_grad
 
-
-
-
-
-
-
-
-
         else:
             raise NotImplementedError("NN4 gradient (backpropagation) Without Batchnorm model not implemented")    
 
