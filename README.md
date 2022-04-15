@@ -1,3 +1,12 @@
+# What is this repo about?
+
+The goal is to create NN1, NN2, and NN4 neural networks in order to predict if a handwritten digit is even or odd.
+
+This implementation uses only `numpy` library for support. No other library used. 
+
+- NN1 and NN2 are plain neural network structures.
+- NN4 uses `batchnorm layer` as well as `dropout layer`.
+
 ## Implementation
 Each models NN1 and NN2 contains layers and W. You can store weights in layers.W or W.
 
