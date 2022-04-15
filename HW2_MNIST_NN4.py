@@ -146,6 +146,8 @@ def test_model(model, X_test, y_test):
 # ### 5. Run the program
 
 # %%
+# promena samo da ti pokazem kako se radi sa gitom
+# u visual studio
 
 #load data
 x, y = load_dataset()
