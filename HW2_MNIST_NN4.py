@@ -75,42 +75,36 @@ def minibatch(x_train,y_train,K):
         
     return x_train_batches, y_train_batches
 
-def initialize_model():
-    #TODO (Can use the similar approach used in HW1)
-    # e.g. He Initialization for W0-W2, Xavier Initialization for W3
-    # Also, initialize your model with a dropout parameter of 0.25 and use_batchnorm being true.
-    
-    M_0 = 120
-    M_1 = 100
-    M_2 = 80
-    M_3 = 80
-
+def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = "True", dropout_p = 0.5, epsilon = 0.001):  
     #Initialize the weights. Adding -1 for the bias term at the end of the vector.
     # Random initialization
     W0 = np.random.rand(np.shape(X_train)[0],M_0) # K x M_1 = 785 x 120
     # He initialization
-    W1 = np.ones((M_1,M_2)) # 120 x 100
+    W1 = np.ones((M_0,M_1)) # 120 x 100
     W1 = np.random.randn(np.shape(W1)[0], np.shape(W1)[1]) * np.sqrt(2/np.shape(W1)[0])
 
-    W2 = np.ones((M_2,M_3)) # 100 x 80
+    W2 = np.ones((M_1,M_2)) # 100 x 80
     W2 = np.random.randn(np.shape(W2)[0], np.shape(W2)[1]) * np.sqrt(2/np.shape(W2)[0])
 
     # Xavier initialization
-    W3 = np.random.randn(M_3, 1) * np.sqrt(1/M_3)
+    W3 = np.random.randn(M_2, M_3) * np.sqrt(1/M_2)
 
     print(f"Size of W0 : {W0.shape}, Size of W1 : {W1.shape}, Size of W2 : {W2.shape}, Size of W3 : {W3.shape}")
-    four_layer_nn  = NN4()
+    four_layer_nn  = NN4(use_batchnorm=use_batch_norm, dropout_param=dropout_p)
     four_layer_nn.layers[0].W = W0
     four_layer_nn.layers[1].W = W1
     four_layer_nn.layers[2].W = W2
     four_layer_nn.layers[3].W = W3
 
+    four_layer_nn.epsilon = epsilon
+    four_layer_nn.dropout_param = dropout_p
+
     return four_layer_nn
 
-def train_model(model, X_train_batches, y_train_batches, gamma, beta, num_epochs=100, learning_rate=0.1, epsi = 0.001):
+def train_model(model, x_train_batches, y_train_batches, gamma, beta, num_epochs=100, learning_rate=0.1, epsi = 0.001):
     #TODO : Call async_SGD and sync_SGD to train two versions of the same model. Compare their outcomes and runtime.
     #Update both your models with final updated weights and return them
-    model_async = async_sgd(model, X_train_batches, y_train_batches,eps=epsi ,gamma = gamma, beta = beta,R = num_epochs, lr = learning_rate)
+    model_async = async_sgd(model, x_train_batches, y_train_batches,eps=epsi ,gamma = gamma, beta = beta,R = num_epochs, lr = learning_rate)
     # model_sync = sync_sgd(model, X_train_batches, y_train_batches)
     return model_async, model_sync
 
@@ -158,7 +152,13 @@ x, y = prepare_data(x,y)
 X_train, X_test, y_train, y_test = split_train_test(x,y)
 
 #initialize model
-model = initialize_model()
+epsilon = 0.001
+M_1 = 120
+M_2 = 100
+M_3 = 80
+M_4 = 1 # Layer 4 must be 1 since this is a binary classification problem
+dropout_p_val = 0.5
+model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = "True", dropout_p = 0.5, epsilon = 0.001)
 
 K = 30
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
@@ -168,7 +168,6 @@ gamma = 0.9
 beta = 0.5
 num_epochs = 1
 learning_rate = 0.1
-epsilon = 0.001
 model_async, model_sync = train_model(model, x_train_batches, y_train_batches, gamma, beta, num_epochs=num_epochs, learning_rate=learning_rate, eps = epsilon)
 print(f"Completed training, now testing...")   
 

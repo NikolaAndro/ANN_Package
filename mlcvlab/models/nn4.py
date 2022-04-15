@@ -1,4 +1,4 @@
-from html2text import element_style
+# f rom html2text import element_style
 import numpy as np
 from mlcvlab.nn.losses import l2, l2_grad
 from mlcvlab.nn.basis import linear, linear_grad
@@ -6,10 +6,10 @@ from mlcvlab.nn.activations import relu, sigmoid, sigmoid_grad, relu_grad
 from .base import Layer
 from mlcvlab.nn.dropout import dropout, dropout_grad
 from mlcvlab.nn.batchnorm import batchnorm, batchnorm_grad
-from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
+# from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
 
 class NN4():
-    def __init__(self, use_batchnorm=False, dropout_param=0):
+    def __init__(self, use_batchnorm=False, dropout_param=0, eps = 0.001):
         self.layers = [
             Layer(None, relu, None, None, None, None ),
             Layer(None, relu, None, None, None, None),
@@ -21,8 +21,15 @@ class NN4():
         #used in dropout implementation
         self.dropout_param = dropout_param
 
+        self.epsilon = eps
+
     def nn4(self, x, curent_mode):
-        # TODO
+        '''Returns the prediction of the neural network based on input iamge x.\
+            In pytorch this is model.forward().
+            Parameters:
+            - x: input image
+            - current_mode: "train" or "test"
+            '''
         if self.use_batchnorm:
             #************************** LAYER 1 ************************
             z_1 = np.dot(self.layers[0].W.T , x) # dim: M1 x K . K x 1 => M1 x 1
@@ -32,12 +39,12 @@ class NN4():
             self.layers[0].z_tilda = z_1_tilda
             # apply batchnorm
             # batch_cache = self.layers[0].batch_norm[2]
-            b_1 = batchnorm(z_1_tilda, gamma=0.1, beta=0.1, eps=0.001, mode=curent_mode )
+            b_1 = batchnorm(z_1_tilda, gamma=self.layers[0].gamma, beta=self.layers[0].beta, eps=self.epsilon, mode=curent_mode )
             self.layers[0].batch_norm = b_1
             self.layers[0].gamma = b_1[1][3]
             self.layers[0].beta = b_1[1][4]
             # apply dropout; B_1[0] dim: M1 x 1
-            y_1 = dropout(b_1[0], p = 0.5, mode = curent_mode) # results in tuple (b_drop, p, mode, mask) 
+            y_1 = dropout(b_1[0], p = self.dropout_param, mode = curent_mode) # results in tuple (b_drop, p, mode, mask) 
             # y_1_out -> dim: M1 x 1
             self.layers[0].y_out = y_1[0]
 
@@ -53,7 +60,7 @@ class NN4():
             self.layers[1].gamma = b_2[1][3]
             self.layers[1].beta = b_2[1][4]
             # apply dropout
-            y_2 = dropout(b_2[0], p = 0.5, mode = curent_mode)
+            y_2 = dropout(b_2[0], p = self.dropout_param, mode = curent_mode)
             self.layers[1].y_out = y_2[0]
 
             #************************** LAYER 3 ************************
@@ -63,12 +70,13 @@ class NN4():
             z_3_tilda = relu(z_3)
             self.layers[2].z_tilda = z_3_tilda
             # apply batchnorm
+
             b_3 = batchnorm(z_3_tilda, gamma=0.1, beta=0.1, eps=0.001, mode=curent_mode )
             self.layers[2].batch_norm = b_3
             self.layers[2].gamma = b_2[2][3]
             self.layers[2].beta = b_2[2][4]
             # apply dropout
-            y_3 = dropout(b_3[0], p = 0.5, mode = curent_mode)
+            y_3 = dropout(b_3[0], p = self.dropout_param, mode = curent_mode)
             self.layers[2].y_out = y_3[0]
 
             #************************** LAYER 4 ************************
@@ -86,7 +94,7 @@ class NN4():
             z_1_tilda = relu(z_1)
             self.layers[0].z_tilda = z_1_tilda
             # apply dropout
-            y_1 = dropout(z_1_tilda, p = 0.5, mode = curent_mode)
+            y_1 = dropout(z_1_tilda, p = self.dropout_param, mode = curent_mode)
             self.layers[0].y_out = y_1[0]
 
             #************************** LAYER 2 ************************
@@ -96,7 +104,7 @@ class NN4():
             z_2_tilda = relu(z_2)
             self.layers[1].z_tilda = z_2_tilda
             # apply dropout
-            y_2 = dropout(z_2_tilda, p = 0.5, mode = curent_mode)
+            y_2 = dropout(z_2_tilda, p = self.dropout_param, mode = curent_mode)
             self.layers[1].y_out = y_2[0]
 
             #************************** LAYER 3 ************************
@@ -106,7 +114,7 @@ class NN4():
             z_3_tilda = relu(np.dot(self.layers[2].W , z_3))
             self.layers[2].z_tilda = z_3_tilda
             # apply dropout
-            y_3 = dropout(z_3_tilda, p = 0.5, mode = curent_mode)
+            y_3 = dropout(z_3_tilda, p = self.dropout_param, mode = curent_mode)
             self.layers[2].y_out = y_3[0]
 
             #************************** LAYER 4 ************************
@@ -115,12 +123,11 @@ class NN4():
             y_hat = sigmoid(z_4)
             self.layers[3].y_out = y_hat # just to keep the value in memory for the grad funciton
 
-        return y_hat
+        return 
 
     def get_grid_dim(self, minibatch_x, minibatch_y):
         '''Returns the size of the CUDA grid assuming that each block is 16 x 32 size. '''
         return int(np.ceil([minibatch_x/16])[0]), int(np.ceil([minibatch_y/32])[0])
-
 
     def layer_4_grad(self,z_4,y,y_hat):
         '''Computes and returns the gradient for the 4th (last) layer.'''
@@ -300,13 +307,14 @@ class NN4():
     
     def grad(self, x, y, eps): 
         '''Returns a gradient for nn4 as a tuple of grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, and grad_l_wrt_w4.
-        and it will also calculate the change in gamma and beta for every layer.
+        and it will also calculate the change in gamma and beta for every layer. In pytorch this is model.forward().
         Parameters:
         - x : training x (1 image)
         - y : training y (1 image label)
         - eps : epsilon used in computations'''
         if self.use_batchnorm:
-            y_hat = self.layers[3].z_tilda
+
+            y_hat = self.layers[3].y_out
 
             grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_4_grad(self.layers[3].z,y,y_hat)
 
@@ -360,7 +368,11 @@ class NN4():
 
 
             if self.use_batchnorm:
+                # forward pass
+                self.nn4(image,curent_mode='train')
+                # backward pass
                 emp_loss_weights, emp_loss_gamma_beta = self.grad(image, label, eps)
+                # used to update gamma and beta
                 sum_gamma_beta += emp_loss_gamma_beta
             else:
                 emp_loss_weights = self.grad(image, label, eps)
@@ -368,10 +380,11 @@ class NN4():
             #add weights, gammas and betas
             sum_weights_emp_loss += emp_loss_weights
             
-
+        # average the weights
         emp_loss_weights = (1 / N) * sum_weights_emp_loss
         
         if self.use_batchnorm:
+            #average gamma and beta
             emp_loss_gamma_beta = (1/N) * sum_gamma_beta
             return [emp_loss_weights,emp_loss_gamma_beta]
         else:

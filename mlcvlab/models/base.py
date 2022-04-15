@@ -1,5 +1,4 @@
 from math import gamma
-from torch import batch_norm
 
 
 class Layer():
