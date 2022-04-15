@@ -19,7 +19,7 @@ class NN2():
         return y_hat_2
 
 
-    def grad(self, x, y, W):
+    def grad(self, x, y):
         '''Returns a gradient for nn2 as a tuple of grad_l_wrt_w1 and grad_l_wrt_w2.'''
 
        
@@ -85,7 +85,7 @@ class NN2():
         
         #get the empirical loss image by image
         for tx, ty in zip(train_X.T,train_y.T):
-            emp_loss = self.grad( tx, ty, W)
+            emp_loss = self.grad( tx, ty)
             sum_img_emp_loss[0] += emp_loss[0]
             sum_img_emp_loss[1] += emp_loss[1]
         

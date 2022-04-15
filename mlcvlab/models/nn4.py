@@ -219,7 +219,7 @@ class NN4():
         return grad_l_wrt_w2, grad_l_wrt_y1, grad_gamma_2, grad_beta_2
 
     def layer_n_grad(self, layer_number, batch_n, eps, **kwargs):
-        '''Computes and returns the gradient for the n-th layer.
+        '''Computes and returns the gradient for the n-th layer, where n can be 1, 2, or 3.
         Parameters:
         - grad_l_wrt_yn : dim: 1 x M (no need for transpose)
         - layer_number : starts at 
@@ -232,8 +232,7 @@ class NN4():
         Output for any other layer"
         - grad_l_wrt_w, grad_l_wrt_y, grad_gamma, grad_beta
         '''
-        if(layer_number != 4):
-            # raise ValueError("I do not know if it needs to be layer_output or BN output in dropout grad")
+        if layer_number in range(1,4):
             if batch_n:
                 drop_input = self.layers[layer_number - 1].batch_norm[0] #dim: M x 1
             else:
@@ -248,7 +247,7 @@ class NN4():
                 # grad_l_wrt_y is already transposed when returned from layer_n_grad()
                 # grad_l_wrt_y => 1 x M
                 # grad_y_wrt_b => M x M
-                grad_l_wrt_b_ = np.dot(kwargs['grad_l_wrt_yn'], grad_y_wrt_b_or_z_tilda) # dim: 1 x M
+                grad_l_wrt_b = np.dot(kwargs['grad_l_wrt_yn'], grad_y_wrt_b_or_z_tilda) # dim: 1 x M
 
                 #******** updates for batch norm gamma and beta *******
                 grad_b_wrt_z_tilda, grad_gamma, grad_beta = batchnorm_grad(grad_l_wrt_b.T,self.layers[layer_number - 1].z_tilda, eps, self.layers[layer_number - 1].batch_norm[1]) 
@@ -285,19 +284,16 @@ class NN4():
             # grad_gamma, grad_beta - scalars
             if batch_n:
                 if layer_number != 1:
-                    return grad_l_wrt_w, grad_l_wrt_y, grad_gamma, grad_beta
+                    return [grad_l_wrt_w, grad_l_wrt_y, grad_gamma, grad_beta]
                 else:
-                    return grad_l_wrt_w, grad_gamma, grad_beta
+                    return [grad_l_wrt_w, grad_gamma, grad_beta]
             else:
                 if layer_number != 1:
-                    return grad_l_wrt_w, grad_l_wrt_y
+                    return [grad_l_wrt_w, grad_l_wrt_y]
                 else:
                     return grad_l_wrt_w
-
-        elif layer_number == 4:
-            return self.layer_4_grad(kwargs['z_4'],kwargs['y'],kwargs['y_hat'])
         else:
-            raise ValueError("Layer number can be in range [1,4] in this NN architecture.")
+            raise ValueError("Layer number can be in range [1,3] in this NN architecture.")
         
     
 
@@ -312,7 +308,7 @@ class NN4():
         if self.use_batchnorm:
             y_hat = self.layers[3].z_tilda
 
-            grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_n_grad(4,self.use_batchnorm, eps, z_4 = self.layers[3].z,y=y,y_hat = y_hat)
+            grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_4_grad(self.layers[3].z,y,y_hat)
 
             grad_l_wrt_w3, grad_l_wrt_y2_transpose, grad_gamma_3, grad_beta_3 = self.layer_n_grad(3, self.use_batchnorm, eps,grad_l_wrt_yn = grad_l_wrt_y3_transpose)
 
@@ -321,15 +317,15 @@ class NN4():
             grad_l_wrt_w1, grad_gamma_1, grad_beta_1 = self.layer_n_grad(1, self.use_batchnorm, eps,grad_l_wrt_yn = grad_l_wrt_y1_transpose)
 
             # Collect the gradient of the weights for each  layer as well as gamma and beta for each layer
-            weights_grad = [grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4]
-            gamma_beta_grad = [(grad_gamma_1, grad_beta_1),(grad_gamma_2, grad_beta_2),(grad_gamma_3, grad_beta_3)]
+            weights_grad = np.array[grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4]
+            gamma_beta_grad = np.array[[grad_gamma_1, grad_beta_1],[grad_gamma_2, grad_beta_2],[grad_gamma_3, grad_beta_3]]
 
             return weights_grad, gamma_beta_grad
 
         else:
             y_hat = self.layers[3].z_tilda
 
-            grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_n_grad(4,self.use_batchnorm, eps, z_4 = self.layers[3].z,y=y,y_hat = y_hat)
+            grad_l_wrt_w4, grad_l_wrt_y3_transpose = self.layer_4_grad(self.layers[3].z,y,y_hat)
 
             grad_l_wrt_w3, grad_l_wrt_y2_transpose = self.layer_n_grad(3, self.use_batchnorm, eps,grad_l_wrt_yn = grad_l_wrt_y3_transpose)
 
@@ -338,28 +334,47 @@ class NN4():
             grad_l_wrt_w1 = self.layer_n_grad(1, self.use_batchnorm, eps,grad_l_wrt_yn = grad_l_wrt_y1_transpose)
 
             # Collect the gradient of the weights for each  layer
-            weights_grad = [grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4]
+            weights_grad = np.array[grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4]
 
             return weights_grad
 
-    def emp_loss_grad(self, train_minibatch_X, train_minibatch_y, radnom_W_index):
-        '''Calculates the gradient of empirical loss function for a minibatch.'''
+    def emp_loss_grad(self, train_minibatch_x, train_minibatch_y, eps):
+        '''Calculates the gradient of empirical loss function for a minibatch.
+        - train_minibatch_x: images in the minibatch
+        - train_minibatch_y: labels for the images in the images
+        - eps: epsilon
+        '''
         # number of iterations
-        N = np.shape(train_minibatch_X)[1]
+        N = np.shape(train_minibatch_x)[1]
 
-        # train bminibatch is of size 785 x K, where K is the number of images in the minibatch
+        sum_weights_emp_loss = np.array([np.zeros((np.shape(self.layers[0].W))),\
+                np.zeros((np.shape(self.layers[1].W))), \
+                    np.zeros((np.shape(self.layers[2].W))), \
+                        np.zeros((np.shape(self.layers[3].W))),])
 
-        # number of CUDA blocks
+        sum_gamma_beta = np.array([[0,0],[0,0],[0,0]])
 
-        # number of threads
-        # total threads = number of grids * number of blocks in each grid * number of threads in each block
+        # train bminibatch is of size 785 x K, where K is the number of images in the minibatch          
+        #iterate over images and labels in each batch
+        for image, label in zip(train_minibatch_x, train_minibatch_y):
 
 
-        #get the empirical loss image by image
-        for tx, ty in zip(train_minibatch_X.T,train_minibatch_y.T):
-            emp_loss = self.grad( tx, ty, W)
-            sum_img_emp_loss[0] += emp_loss[0]
-            sum_img_emp_loss[1] += emp_loss[1]
+            if self.use_batchnorm:
+                emp_loss_weights, emp_loss_gamma_beta = self.grad(image, label, eps)
+                sum_gamma_beta += emp_loss_gamma_beta
+            else:
+                emp_loss_weights = self.grad(image, label, eps)
 
+            #add weights, gammas and betas
+            sum_weights_emp_loss += emp_loss_weights
+            
+
+        emp_loss_weights = (1 / N) * sum_weights_emp_loss
+        
+        if self.use_batchnorm:
+            emp_loss_gamma_beta = (1/N) * sum_gamma_beta
+            return [emp_loss_weights,emp_loss_gamma_beta]
+        else:
+            return emp_loss_weights
 
 
