@@ -107,11 +107,11 @@ def initialize_model():
 
     return four_layer_nn
 
-def train_model(model, X_train_batches, y_train_batches):
+def train_model(model, X_train_batches, y_train_batches, gamma, beta):
     #TODO : Call async_SGD and sync_SGD to train two versions of the same model. Compare their outcomes and runtime.
     #Update both your models with final updated weights and return them
-    model_async = async_sgd(model, X_train_batches, y_train_batches)
-    model_sync = sync_sgd(model, X_train_batches, y_train_batches)
+    model_async = async_sgd(model, X_train_batches, y_train_batches,gamma, beta)
+    # model_sync = sync_sgd(model, X_train_batches, y_train_batches)
 
     return model_async, model_sync
 
@@ -159,10 +159,13 @@ X_train, X_test, y_train, y_test = split_train_test(x,y)
 #initialize model
 model = initialize_model()
 
+K = 30
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
 
 #training model
-model_async, model_sync = train_model(model, x_train_batches, y_train_batches)
+gamma = 0.9
+beta = 0.5
+model_async, model_sync = train_model(model, x_train_batches, y_train_batches, gamma, beta)
 print(f"Completed training, now testing...")   
 
 #testing model
