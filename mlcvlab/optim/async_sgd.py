@@ -29,10 +29,13 @@ def async_sgd(model, x_train_batches, y_train_batches,eps, lr=0.1, R=100, gamma 
 
             w_r_minus_1 = w_r
     
-    if model.use_batchnorm:
-        return [w_r, gamma_beta]
-    else:
-        return w_r
+    for i in range(4):
+        model.layers[i].W = w_r[i]
+        if model.use_batchnorm:
+            model.layers[i].gamma = gamma_beta[0]
+            model.layers[i].beta = gamma_beta[1]
+
+    return model
 
             
 
