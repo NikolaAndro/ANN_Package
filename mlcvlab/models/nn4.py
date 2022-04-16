@@ -140,7 +140,7 @@ class NN4():
         # Since this is binary classification problem of predicting if a digit is odd or even,
         # we will use a treshold to devide results
         if y_hat >= 0.5:
-            y_hat == 1
+            y_hat = 1
         else:
             y_hat = 0
             
