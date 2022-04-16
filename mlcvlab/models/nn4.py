@@ -367,6 +367,8 @@ class NN4():
 
             grad_l_wrt_w1 = self.layer_n_grad(1, self.use_batchnorm,grad_l_wrt_yn = grad_l_wrt_y1_transpose)
 
+            # shape is (M3,M4) and it results in (80,). Need to make it (80,1) to perform operations on it later.
+            grad_l_wrt_w4 = np.reshape(grad_l_wrt_w4, (np.shape(grad_l_wrt_w4)[0],1))
             # Collect the gradient of the weights for each  layer
             weights_grad = np.array([grad_l_wrt_w1, grad_l_wrt_w2, grad_l_wrt_w3, grad_l_wrt_w4])
 
