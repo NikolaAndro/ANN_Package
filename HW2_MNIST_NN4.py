@@ -57,8 +57,8 @@ def split_train_test(x,y):
     The shape  of the data will be M x N where M = 784 and N = 60000 for X and N = 10000 for y.'''   
     #X_train, X_test = x[:60000].T, x[60000:].T
     #y_train, y_test = y[:60000].T, y[60000:].T
-    X_train, X_test = x[:6].T, x[69994:].T
-    y_train, y_test = y[:6].T, y[69994:].T
+    X_train, X_test = x[:6].T, x[69900:].T
+    y_train, y_test = y[:6].T, y[69900:].T
     
     # adding -1 to the end of every x  as a bias term
     bias_train = np.ones((1, np.shape(X_train)[1])) * -1
@@ -83,7 +83,10 @@ def minibatch(x_train,y_train,K):
 def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = True, dropout_p = 0.5):  
     #Initialize the weights. Adding -1 for the bias term at the end of the vector.
     # Random initialization
-    W0 = np.random.rand(np.shape(X_train)[0],M_0) # K x M_1 = 785 x 120
+    #W0 = np.random.rand(np.shape(X_train)[0],M_0) # K x M_1 = 785 x 120
+    W0 = np.ones((np.shape(X_train)[0],M_0)) # K x M_1 = 785 x 120
+    W0 = np.random.randn(np.shape(W0)[0], np.shape(W0)[1]) * np.sqrt(2/np.shape(W0)[0])
+    
     # He initialization
     W1 = np.ones((M_0,M_1)) # 120 x 100
     W1 = np.random.randn(np.shape(W1)[0], np.shape(W1)[1]) * np.sqrt(2/np.shape(W1)[0])
@@ -169,7 +172,7 @@ M_3 = 80
 M_4 = 1 # Layer 4 must be 1 since this is a binary classification problem
 dropout_p_val = 0.5
 
-model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = False, dropout_p = dropout_p_val)
+model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = True, dropout_p = dropout_p_val)
 
 K = 2
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
@@ -182,8 +185,8 @@ model_async, model_sync = train_model(model, x_train_batches, y_train_batches, n
 print(f"Completed training, now testing...")   
 
 #testing model
-accuracy_async = test_model(model_async, X_test, y_test)
-print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}")   
+accuracy_async = test_model(model_async, X_test, y_test) * 100
+print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}%")   
 
 #accuracy_sync = test_model(model_sync, X_test, y_test)
 #print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 

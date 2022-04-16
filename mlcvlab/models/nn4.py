@@ -14,9 +14,9 @@ class NN4():
         gamma, beta = np.random.uniform(0.01,1), np.random.uniform(0.01,1)
         eps = 0.000001
         self.layers = [
-            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)) , gamma = gamma, beta=beta, dropout_output = None),
-            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)), gamma = gamma, beta=beta, dropout_output = None),
-            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)), gamma = gamma, beta=beta, dropout_output = None),
+            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)) , gamma = gamma, beta=beta, dropout_output = None, dropout_param=0.8),
+            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)), gamma = gamma, beta=beta, dropout_output = None,dropout_param=0.5),
+            Layer(None, relu, None, None, (None,(None,None,None,None,None,1.,1.)), gamma = gamma, beta=beta, dropout_output = None,dropout_param=0.5),
             Layer(None, sigmoid, None, None, (None,(None,None,None,None,None,1.,1.)), gamma = gamma, beta=beta, dropout_output = None)]
         
         self.use_batchnorm = use_batchnorm
@@ -50,7 +50,7 @@ class NN4():
                 self.layers[0].beta = b_1[1][4]
                 
             # apply dropout; B_1[0] dim: M1 x 1
-            y_1 = dropout(b_1[0], p = self.dropout_param, mode = curent_mode) # results in tuple (b_drop, p, mode, mask) 
+            y_1 = dropout(b_1[0], p = self.layers[0].dropout_param, mode = curent_mode) # results in tuple (b_drop, p, mode, mask) 
             # y_1_out -> dim: M1 x 1
             self.layers[0].y_out = y_1
 
@@ -68,7 +68,7 @@ class NN4():
                 self.layers[1].gamma = b_2[1][3]
                 self.layers[1].beta = b_2[1][4]
             # apply dropout
-            y_2 = dropout(b_2[0], p = self.dropout_param, mode = curent_mode)
+            y_2 = dropout(b_2[0], p = self.layers[1].dropout_param, mode = curent_mode)
             self.layers[1].y_out = y_2
 
             #************************** LAYER 3 ************************
@@ -86,7 +86,7 @@ class NN4():
                 self.layers[2].gamma = b_2[1][3]
                 self.layers[2].beta = b_2[1][4]
             # apply dropout
-            y_3 = dropout(b_3[0], p = self.dropout_param, mode = curent_mode)
+            y_3 = dropout(b_3[0], p = self.layers[2].dropout_param, mode = curent_mode)
             self.layers[2].y_out = y_3
 
             #************************** LAYER 4 ************************
@@ -106,7 +106,7 @@ class NN4():
             z_1_tilda = relu(z_1)
             self.layers[0].z_tilda = z_1_tilda
             # apply dropout
-            y_1 = dropout(z_1_tilda, p = self.dropout_param, mode = curent_mode)
+            y_1 = dropout(z_1_tilda, p = self.layers[0].dropout_param, mode = curent_mode)
             self.layers[0].y_out = y_1
 
             #************************** LAYER 2 ************************
@@ -116,7 +116,7 @@ class NN4():
             z_2_tilda = relu(z_2)
             self.layers[1].z_tilda = z_2_tilda
             # apply dropout
-            y_2 = dropout(z_2_tilda, p = self.dropout_param, mode = curent_mode)
+            y_2 = dropout(z_2_tilda, p = self.layers[1].dropout_param, mode = curent_mode)
             self.layers[1].y_out = y_2
 
             #************************** LAYER 3 ************************
@@ -126,7 +126,7 @@ class NN4():
             z_3_tilda = relu(z_3)
             self.layers[2].z_tilda = z_3_tilda
             # apply dropout
-            y_3 = dropout(z_3_tilda, p = self.dropout_param, mode = curent_mode)
+            y_3 = dropout(z_3_tilda, p = self.layers[2].dropout_param, mode = curent_mode)
             self.layers[2].y_out = y_3
 
             #************************** LAYER 4 ************************
@@ -136,7 +136,14 @@ class NN4():
             self.layers[3].z = z_4
             y_hat = sigmoid(z_4)
             self.layers[3].y_out = y_hat # just to keep the value in memory for the grad funciton
-
+        
+        # Since this is binary classification problem of predicting if a digit is odd or even,
+        # we will use a treshold to devide results
+        if y_hat >= 0.5:
+            y_hat == 1
+        else:
+            y_hat = 0
+            
         return y_hat
 
     def get_grid_dim(self, minibatch_x, minibatch_y):
@@ -145,7 +152,7 @@ class NN4():
 
     def layer_4_grad(self,z_4,y,y_hat):
         '''Computes and returns the gradient for the 4th (last) layer.'''
-        grad_y_hat_wrt_z4 = sigmoid_grad(y_hat)
+        grad_y_hat_wrt_z4 = sigmoid_grad(z_4)
         grad_l_wrt_y_hat = l2_grad(y,y_hat)
         grad_l_wrt_z4 = np.dot(grad_l_wrt_y_hat, grad_y_hat_wrt_z4) # 1 x 1
 
@@ -396,7 +403,7 @@ class NN4():
                 sum_gamma_beta += emp_loss_gamma_beta
             else:
                 # forward pass
-                _ = self.nn4(image,curent_mode='test')
+                _ = self.nn4(image,curent_mode='train')
                 # backward pass
                 emp_loss_weights = self.grad(image, label)
 
