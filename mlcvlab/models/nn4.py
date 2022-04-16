@@ -145,7 +145,7 @@ class NN4():
 
     def layer_4_grad(self,z_4,y,y_hat):
         '''Computes and returns the gradient for the 4th (last) layer.'''
-        grad_y_hat_wrt_z4 = sigmoid_grad(z_4)
+        grad_y_hat_wrt_z4 = sigmoid_grad(y_hat)
         grad_l_wrt_y_hat = l2_grad(y,y_hat)
         grad_l_wrt_z4 = np.dot(grad_l_wrt_y_hat, grad_y_hat_wrt_z4) # 1 x 1
 

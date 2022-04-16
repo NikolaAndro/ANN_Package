@@ -13,11 +13,13 @@ def relu_grad(z):
     return z
 
 def sigmoid(x):
-    '''Returns input variable in the same shape passed through Signoid function.'''
+    '''Returns input variable in the same shape passed through Sigmoid function.'''
     return 1/(1 + np.exp(-x))
     
 def sigmoid_grad(z):
-    '''Returns gradient of the Sigmoid activation function'''
+    '''Returns gradient of the Sigmoid activation function. 
+    Parameters:
+    - z: output of the sigmoid layer.'''
     return z * (1 - z)
 
 def softmax(x):
