@@ -16,26 +16,31 @@ def dropout(b, p, mode='test'):
     # TODO Implement logic for both 'test' and 'train' modes.
     if mode == 'train':
         # Mask for the dropout. List of binomial distribution in size of x.
-        mask = np.random.binomial(1, p, size=b.shape) # dim: M x 1
+        # A simpler and commonly used alternative called Inverted Dropout scales 
+        # the output activation during training phase by 1p so that we can leave 
+        # the network during testing phase untouched.
+        mask = np.random.binomial(1, p, size=b.shape) / p # dim: M x 1
+        
         # For every distribution == 1 in hte mask, make that element of x = 0.
+        # When the output of the neuron is scaled to 0, it does not contribute 
+        # any further during both forward and backward pass, which is essentially dropout.
         b_drop = b * mask  # dim: M x 1
 
     elif mode == 'test':
         # No mask in testing mode since we want to keep all the nodes active. 
         # What we need to do is to make it matches the training phase expectation, so we scale the layer output with p.
         mask = None
-        b_drop = b * p # dim: M x 1
+        b_drop = np.dot(p,b) # dim: M x 1
+        
     
     return b_drop, p, mode, mask
 
 def dropout_grad(z, mask, mode='train'):
-    '''Gradient of the dropout.'''
-    e = 0.001
-
+    '''Gradient of the dropout. Returning diagonalized gradient.'''
+ 
     if mode == 'train':
-        # + e ?   where   e = 0.001
-        grad_w_wrt_b = np.dot((1/mask) * np.identity(len(mask)), z)
-    
+        grad_w_wrt_b = np.dot(mask * np.identity(np.shape(mask)[0]), np.identity(np.shape(z)[0]) * z)
+    else:
+        raise ValueError("dropout_grad() can only be called in train mode.")
     return grad_w_wrt_b
-    # elif mode == 'test':
-    #     raise NotImplementedError("Gradiant of Dropout - Test Not Implemented")
+   

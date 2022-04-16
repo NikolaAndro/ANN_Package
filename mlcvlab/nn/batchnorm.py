@@ -5,7 +5,7 @@ import numpy as np
 from regex import E
 
 
-def batchnorm(z_tilda, gamma, beta, eps, mode = 'test'):
+def batchnorm(z_tilda, gamma, beta, eps,running_mean = 0, running_variance = 0, mode = 'test'):
     '''
     Input:
     - z_tilda: Data of shape (M, 1)
@@ -26,21 +26,17 @@ def batchnorm(z_tilda, gamma, beta, eps, mode = 'test'):
     # Hardcode the momentum
     momentum = 0.9
 
-    # Initialize running variance and mean for backprop
-    running_mean = np.zeros(z_tilda.shape()[1], dtype=z_tilda.dtype)
-    running_variance = np.zeros(z_tilda.shape()[1], dtype=z_tilda.dtype)
-
     if mode == 'train':
-
+                
         # Find the mean of the minibatch
-        z_tilda_mean = z_tilda.mean(axis = 0)
+        z_tilda_mean = z_tilda.mean(axis = 0) # dim: 1 x 1
 
         # Find the variance of the minibatch
-        z_tilda_variance = z_tilda.var(axis=0)
+        z_tilda_variance = z_tilda.var(axis=0) #dim 1 x 1
 
         # Find the running mean and variance for the backward propagation
-        running_mean = momentum * running_mean + (1  - momentum) * z_tilda_mean
-        running_variance = momentum * running_variance + (1  - momentum) * z_tilda_variance
+        running_mean = momentum * running_mean + (1  - momentum) * z_tilda_mean #dim: 30 x 1
+        running_variance = momentum * running_variance + (1  - momentum) * z_tilda_variance #dim: 30 x 1
 
 
         # Normalize the layer
@@ -57,6 +53,7 @@ def batchnorm(z_tilda, gamma, beta, eps, mode = 'test'):
     elif mode =="test":
         z_tilda_normalized = (z_tilda - running_mean) / np.sqrt(running_variance + eps)
         output_batch = gamma + z_tilda_normalized + beta
+        cache = None
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
 
@@ -78,18 +75,22 @@ def batchnorm_grad(grad_l_wrt_y, input_x, eps, cache):
     """
     # num features
     m = grad_l_wrt_y.shape[0]
+    # reshape inpu x to numpy dimensions
+    input_x = np.reshape(input_x,(np.shape(input_x)[0],1))
 
     # get the variables from forward pass in cache 
     x_normalized, x_mean, x_variance, gamma, _, __,___ = cache
-
+    
+    #Reshape x_normalized to M x 1
+    x_normalized = np.reshape(x_normalized, (np.shape(x_normalized)[0],1))
     # Equation 1 from the backprop algorithm  from the original paper of batchnorm
     # partial derivative of L with respect to x_hat
     pd_l_wrt_xhat = grad_l_wrt_y * gamma # dim: M x 1
 
     # partial derivative of L with respect to gamma
     # pd (partial derivative)
-    pd_l_wrt_gamma =  (grad_l_wrt_y * x_normalized).sum(axis=0) # dim: 1 x 1 
-
+    pd_l_wrt_gamma =  (grad_l_wrt_y * x_normalized).sum(axis=0)# dim: 1 x 1 
+    
     #partial derivative of l wrt beta
     pd_l_wrt_beta = grad_l_wrt_y.sum(axis=0) # dim: 1 x 1
 

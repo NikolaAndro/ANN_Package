@@ -55,8 +55,10 @@ def prepare_data(x, y):
 def split_train_test(x,y):
     '''Partitioning the dataset into 10,000 test samles and the remaining 60,000 as training samples. 
     The shape  of the data will be M x N where M = 784 and N = 60000 for X and N = 10000 for y.'''   
-    X_train, X_test = x[:60000].T, x[60000:].T
-    y_train, y_test = y[:60000].T, y[60000:].T
+    #X_train, X_test = x[:60000].T, x[60000:].T
+    #y_train, y_test = y[:60000].T, y[60000:].T
+    X_train, X_test = x[:6].T, x[69994:].T
+    y_train, y_test = y[:6].T, y[69994:].T
     
     # adding -1 to the end of every x  as a bias term
     bias_train = np.ones((1, np.shape(X_train)[1])) * -1
@@ -70,12 +72,15 @@ def split_train_test(x,y):
 def minibatch(x_train,y_train,K):
     # Batch Size: K
     # X_train_batches, y_train_batches should be a list of lists of size K.
-    x_train_batches = [x_train[i:i+K] for i in range(0, len(x_train), K)]
-    y_train_batches = [y_train[i:i+K] for i in range(0, len(y_train), K)]
-        
+    x_train = x_train.T
+    y_train = y_train.T
+
+    x_train_batches = np.array([x_train[i:i+K].T for i in range(0, len(x_train), K)])
+    y_train_batches = np.array([y_train[i:i+K].T for i in range(0, len(y_train), K)])
+ 
     return x_train_batches, y_train_batches
 
-def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = "True", dropout_p = 0.5, epsilon = 0.001):  
+def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = True, dropout_p = 0.5):  
     #Initialize the weights. Adding -1 for the bias term at the end of the vector.
     # Random initialization
     W0 = np.random.rand(np.shape(X_train)[0],M_0) # K x M_1 = 785 x 120
@@ -96,16 +101,16 @@ def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = "True", dropout_p = 0.5, 
     four_layer_nn.layers[2].W = W2
     four_layer_nn.layers[3].W = W3
 
-    four_layer_nn.epsilon = epsilon
     four_layer_nn.dropout_param = dropout_p
 
     return four_layer_nn
 
-def train_model(model, x_train_batches, y_train_batches, gamma, beta, num_epochs=100, learning_rate=0.1, epsi = 0.001):
+def train_model(model, x_train_batches, y_train_batches, num_epochs=100, learning_rate=0.1):
     #TODO : Call async_SGD and sync_SGD to train two versions of the same model. Compare their outcomes and runtime.
     #Update both your models with final updated weights and return them
-    model_async = async_sgd(model, x_train_batches, y_train_batches,eps=epsi ,gamma = gamma, beta = beta,R = num_epochs, lr = learning_rate)
+    model_async = async_sgd(model, x_train_batches, y_train_batches,R = num_epochs, lr = learning_rate)
     # model_sync = sync_sgd(model, X_train_batches, y_train_batches)
+    model_sync = None
     return model_async, model_sync
 
 def test_model(model, X_test, y_test):
@@ -117,11 +122,17 @@ def test_model(model, X_test, y_test):
     # for layer in range(len(model.layers)):
     #     model.layers[layer].W = final_W[layer]
     
-    # get the predictions of the algorithm using testing x as the input
-    y_hat = model.nn2(X_test)
-
     # get the number of test instances
     T = np.shape(y_test)[1]
+    
+    # get the predictions of the algorithm using testing x as the input
+    
+    y_hat = np.zeros(np.shape(y_test))
+    
+    for index, image in enumerate(X_test.T):
+        y_hat[0][index] = model.nn4(image,'test')
+
+    
 
     A = np.absolute(y_test - y_hat)
     
@@ -152,31 +163,30 @@ x, y = prepare_data(x,y)
 X_train, X_test, y_train, y_test = split_train_test(x,y)
 
 #initialize model
-epsilon = 0.001
 M_1 = 120
 M_2 = 100
 M_3 = 80
 M_4 = 1 # Layer 4 must be 1 since this is a binary classification problem
 dropout_p_val = 0.5
-model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = "True", dropout_p = 0.5, epsilon = 0.001)
 
-K = 30
+model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = False, dropout_p = dropout_p_val)
+
+K = 2
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
 
 #set values for training model
-gamma = 0.9
-beta = 0.5
+
 num_epochs = 1
 learning_rate = 0.1
-model_async, model_sync = train_model(model, x_train_batches, y_train_batches, gamma, beta, num_epochs=num_epochs, learning_rate=learning_rate, eps = epsilon)
+model_async, model_sync = train_model(model, x_train_batches, y_train_batches, num_epochs=num_epochs, learning_rate=learning_rate)
 print(f"Completed training, now testing...")   
 
 #testing model
 accuracy_async = test_model(model_async, X_test, y_test)
 print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}")   
 
-accuracy_sync = test_model(model_sync, X_test, y_test)
-print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 
+#accuracy_sync = test_model(model_sync, X_test, y_test)
+#print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 
 
 # %%
 
