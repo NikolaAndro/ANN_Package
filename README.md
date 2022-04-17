@@ -10,6 +10,33 @@ This implementation uses only `numpy` library for support. No other library used
 ## Implementation
 Each models NN1 and NN2 contains layers and W. You can store weights in layers.W or W.
 
+## Code Structure
+```shell
+├── mlcvlab
+│   ├── models # header file of add2 cuda kernel
+|   |   ├── base.py
+|   |   ├── nn1.py
+|   |   ├── nn2.py
+|   |   └── nn4.py
+|   ├── nn
+|   |   ├── activations.py
+|   |   ├── basis.py
+|   |   ├── batchnorm.py
+|   |   ├── dropout.py
+|   |   └── losses.py
+|   └── optim
+|       ├── adam.py
+|       ├── async_sgd.py
+|       ├── sgd.py
+|       └── sync_sgd.py
+|    
+├── HW1_MNIST_NN1.ipynb
+├── HW1_MNIST_NN1.py
+├── HW1_MNIST_NN2.ipynb
+├── HW1_MNIST_NN2.py
+└── README.md
+```
+
 ## Run test cases
 
 # To run the test cases for activations.py file, run the following command and all tests should pass
