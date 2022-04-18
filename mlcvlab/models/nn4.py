@@ -6,7 +6,7 @@ from mlcvlab.nn.activations import relu, sigmoid, sigmoid_grad, relu_grad
 from .base import Layer
 from mlcvlab.nn.dropout import dropout, dropout_grad
 from mlcvlab.nn.batchnorm import batchnorm, batchnorm_grad
-# from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
+from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
 
 class NN4():
     def __init__(self, use_batchnorm=False, dropout_param=0):
@@ -245,7 +245,6 @@ class NN4():
         grad_l_wrt_w2 = grad_l_wrt_w2.reshape(M1,M2)
 
         return grad_l_wrt_w2, grad_l_wrt_y1, grad_gamma_2, grad_beta_2
-
     def layer_n_grad(self, layer_number, batch_n, grad_l_wrt_yn):
         '''Computes and returns the gradient for the n-th layer, where n can be 1, 2, or 3.
         Parameters:

@@ -172,7 +172,7 @@ M_3 = 80
 M_4 = 1 # Layer 4 must be 1 since this is a binary classification problem
 dropout_p_val = 0.5
 
-model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = False, dropout_p = dropout_p_val)
+model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = True, dropout_p = dropout_p_val)
 
 K = 2
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
@@ -182,11 +182,11 @@ x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
 num_epochs = 1
 learning_rate = 0.1
 model_async, model_sync = train_model(model, x_train_batches, y_train_batches, num_epochs=num_epochs, learning_rate=learning_rate)
-print(f"Completed training, now testing...")   
+print(f"\n\nCompleted training, now testing...")   
 
 #testing model
 accuracy_async = test_model(model_async, X_test, y_test) * 100
-print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}%")   
+print(f"\n\nCompleted testing model using asynchronous SGD - Accuracy : {accuracy_async}%\n")   
 
 #accuracy_sync = test_model(model_sync, X_test, y_test)
 #print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 
