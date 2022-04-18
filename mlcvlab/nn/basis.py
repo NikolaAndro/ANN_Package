@@ -17,11 +17,7 @@ def radial(x, W):
     print("radial: ",y)
     return y
     
-def radial_grad(loss_grad_y, x, W):
+def radial_grad(x, W):
     '''Gradient of radial basis.'''
-    y = radial(x,W)
-    delta_y = (x-W)/loss_grad_y
-    # delta_y = -2 * loss_grad_y * (x-W)
-    delta_y = delta_y.flatten()
-    print("Delta_radial: \n", delta_y)
+    delta_y = 2*(x-W)**2   
     return delta_y
