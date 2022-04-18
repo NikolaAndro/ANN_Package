@@ -24,11 +24,14 @@ mpl.rc('ytick', labelsize=12)
 # ### 2. Import from mlcblab
 
 # %%
-from mlcvlab.models.nn4 import NN4
-from mlcvlab.nn.losses import l2
-from mlcvlab.optim.sgd import SGD
-from mlcvlab.optim.async_sgd import async_sgd
-from mlcvlab.optim.sync_sgd import sync_sgd
+from mlcvlab_gpu.models.nn4 import NN4
+from mlcvlab_gpu.nn.losses import l2
+from mlcvlab_gpu.optim.sgd import SGD
+from mlcvlab_gpu.optim.async_sgd import async_sgd
+from mlcvlab_gpu.optim.sync_sgd import sync_sgd
+
+# from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
+
 
 # %% [markdown]
 # ### 3. Set Seed
@@ -55,10 +58,10 @@ def prepare_data(x, y):
 def split_train_test(x,y):
     '''Partitioning the dataset into 10,000 test samles and the remaining 60,000 as training samples. 
     The shape  of the data will be M x N where M = 784 and N = 60000 for X and N = 10000 for y.'''   
-    #X_train, X_test = x[:60000].T, x[60000:].T
-    #y_train, y_test = y[:60000].T, y[60000:].T
-    X_train, X_test = x[:6].T, x[69900:].T
-    y_train, y_test = y[:6].T, y[69900:].T
+    X_train, X_test = x[:60000].T, x[60000:].T
+    y_train, y_test = y[:60000].T, y[60000:].T
+    # X_train, X_test = x[:6].T, x[69900:].T
+    # y_train, y_test = y[:6].T, y[69900:].T
     
     # adding -1 to the end of every x  as a bias term
     bias_train = np.ones((1, np.shape(X_train)[1])) * -1
@@ -111,9 +114,9 @@ def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = True, dropout_p = 0.5):
 def train_model(model, x_train_batches, y_train_batches, num_epochs=100, learning_rate=0.1):
     #TODO : Call async_SGD and sync_SGD to train two versions of the same model. Compare their outcomes and runtime.
     #Update both your models with final updated weights and return them
-    model_async = async_sgd(model, x_train_batches, y_train_batches,R = num_epochs, lr = learning_rate)
-    # model_sync = sync_sgd(model, X_train_batches, y_train_batches)
-    model_sync = None
+    # model_async = async_sgd(model, x_train_batches, y_train_batches,R = num_epochs, lr = learning_rate)
+    model_sync = sync_sgd(model, x_train_batches, y_train_batches,R = num_epochs, lr = learning_rate)
+    model_async = None
     return model_async, model_sync
 
 def test_model(model, X_test, y_test):
@@ -174,7 +177,7 @@ dropout_p_val = 0.5
 
 model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = False, dropout_p = dropout_p_val)
 
-K = 2
+K = 6000
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
 
 #set values for training model

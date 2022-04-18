@@ -1,13 +1,16 @@
 # No additional 3rd party external libraries are allowed
 import numpy as np
+# tqdm - package used to shoe a progress bar when loops executing
+# tqdm - "progress" in arabic and obriviation for  "Te Quiero DeMaciado" 
+# in Spanish (I love you so much)
+from tqdm import tqdm 
 
-def sync_sgd(model, X_train_batches, y_train_batches, lr=0.1, R=100):
+def async_sgd(model, x_train_batches, y_train_batches, lr=0.1, R=100):
     '''
-    Compute gradient estimate of emp loss on each mini batch in-parallel using GPU blocks/threads.
-    Wait for all results and aggregate results by calling cuda.synchronize(). For more details, refer to https://thedatafrog.com/en/articles/cuda-kernel-python
-    Compute update step synchronously
+    Compute gradient estimate of emp loss on each minibatch in parallel using GPU blocks/threads
+    use the most recent gradient estimate computed on a single minibatch to update the weights asynchronously.
     '''
-   # setup
+    # setup
     w_r_minus_1 = []
     gamma_beta_minus_1 = []
     for index, layer in enumerate(model.layers):
@@ -42,3 +45,9 @@ def sync_sgd(model, X_train_batches, y_train_batches, lr=0.1, R=100):
             model.layers[i].beta = gamma_beta[i][1]
 
     return model
+
+            
+
+
+
+
