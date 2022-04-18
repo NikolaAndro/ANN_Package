@@ -7,7 +7,7 @@ import numpy as np
 from tqdm import tqdm 
 
 from numba import cuda
-from mlcvlab_GPU.models import nn4
+from mlcvlab_gpu.models import nn4
 
 def sync_sgd(model, x_train_batches, y_train_batches, lr=0.1, R=100):
     '''

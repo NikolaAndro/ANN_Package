@@ -8,8 +8,9 @@ from mlcvlab.nn.dropout import dropout, dropout_grad
 from mlcvlab.nn.batchnorm import batchnorm, batchnorm_grad
 from numba import jit, njit, vectorize, cuda, uint32, f8, uint8
 
+
 class NN4():
-    def __init__(self, use_batchnorm=False, dropout_param=0):
+    def __init__(self, use_batchnorm, dropout_param):
         # randomize the initial gamma and beta
         gamma, beta = np.random.uniform(0.01,1), np.random.uniform(0.01,1)
         eps = 0.000001
@@ -362,12 +363,4 @@ class NN4():
         else:
             emp_loss_weights_gamma_beta = [emp_loss_weights]
         
-        
-        # if self.use_batchnorm:
-        #     #average gamma and beta
-        #     emp_loss_gamma_beta = (1/N) * sum_gamma_beta
-        #     return [emp_loss_weights,emp_loss_gamma_beta]
-        # else:
-        #     return emp_loss_weights
-
 
