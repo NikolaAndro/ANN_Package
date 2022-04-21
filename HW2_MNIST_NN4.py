@@ -62,6 +62,7 @@ def split_train_test(x,y):
     y_train, y_test = y[:60000].T, y[60000:].T
     # X_train, X_test = x[:6].T, x[69900:].T
     # y_train, y_test = y[:6].T, y[69900:].T
+
     
     # adding -1 to the end of every x  as a bias term
     bias_train = np.ones((1, np.shape(X_train)[1])) * -1
@@ -100,7 +101,7 @@ def initialize_model(M_0,M_1,M_2,M_3, use_batch_norm = True, dropout_p = 0.5):
     # Xavier initialization
     W3 = np.random.randn(M_2, M_3) * np.sqrt(1/M_2)
 
-    print(f"Size of W0 : {W0.shape}, Size of W1 : {W1.shape}, Size of W2 : {W2.shape}, Size of W3 : {W3.shape}")
+    print(f"\nSize of W0 : {W0.shape}, Size of W1 : {W1.shape}, Size of W2 : {W2.shape}, Size of W3 : {W3.shape}\n\n")
     four_layer_nn  = NN4(use_batchnorm=use_batch_norm, dropout_param=dropout_p)
     four_layer_nn.layers[0].W = W0
     four_layer_nn.layers[1].W = W1
@@ -122,11 +123,6 @@ def train_model(model, x_train_batches, y_train_batches, num_epochs=100, learnin
 def test_model(model, X_test, y_test):
     '''Tests the accuracy of the neural network.'''
     accuracy = None
-    # final_W = model.W
-    
-    # set the weights in the layers
-    # for layer in range(len(model.layers)):
-    #     model.layers[layer].W = final_W[layer]
     
     # get the number of test instances
     T = np.shape(y_test)[1]
@@ -175,7 +171,7 @@ M_3 = 80
 M_4 = 1 # Layer 4 must be 1 since this is a binary classification problem
 dropout_p_val = 0.5
 
-model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = False, dropout_p = dropout_p_val)
+model = initialize_model(M_1,M_2,M_3,M_4, use_batch_norm = True, dropout_p = dropout_p_val)
 
 K = 6000
 x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
@@ -185,11 +181,11 @@ x_train_batches, y_train_batches = minibatch(X_train,y_train,K)
 num_epochs = 1
 learning_rate = 0.1
 model_async, model_sync = train_model(model, x_train_batches, y_train_batches, num_epochs=num_epochs, learning_rate=learning_rate)
-print(f"Completed training, now testing...")   
+print(f"\n\nCompleted training, now testing...")   
 
 #testing model
 accuracy_async = test_model(model_async, X_test, y_test) * 100
-print(f"Completed testing model using asynchronous SGD - Accuracy : {accuracy_async}%")   
+print(f"\n\nCompleted testing model using asynchronous SGD - Accuracy : {accuracy_async}%\n")   
 
 #accuracy_sync = test_model(model_sync, X_test, y_test)
 #print(f"Completed testing model using synchronous SGD - Accuracy : {accuracy_sync}") 

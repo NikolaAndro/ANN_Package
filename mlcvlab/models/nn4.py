@@ -245,7 +245,7 @@ class NN4():
 
         return grad_l_wrt_w2, grad_l_wrt_y1, grad_gamma_2, grad_beta_2
 
-    def layer_n_grad(self, layer_number, batch_n, **kwargs):
+    def layer_n_grad(self, layer_number, batch_n, grad_l_wrt_yn):
         '''Computes and returns the gradient for the n-th layer, where n can be 1, 2, or 3.
         Parameters:
         - grad_l_wrt_yn : dim: 1 x M (no need for transpose)
@@ -273,7 +273,7 @@ class NN4():
                 # grad_l_wrt_y is already transposed when returned from layer_n_grad()
                 # grad_l_wrt_y => 1 x M
                 # grad_y_wrt_b => M x M
-                grad_l_wrt_yn = kwargs['grad_l_wrt_yn']
+                #grad_l_wrt_yn = grad_l_wrt_yn
                 grad_l_wrt_b = np.dot(grad_l_wrt_yn, grad_y_wrt_b_or_z_tilda) # dim: 1 x M
 
                 #******** updates for batch norm gamma and beta *******
@@ -283,7 +283,7 @@ class NN4():
                 grad_b_wrt_z_tilda = grad_b_wrt_z_tilda * np.identity(np.shape(grad_b_wrt_z_tilda)[0]) # dim: M x M
                 grad_l_wrt_z_tilda = np.dot(grad_l_wrt_b,grad_b_wrt_z_tilda) # dim: 1 x M . 
             else:
-                grad_l_wrt_z_tilda = np.dot(kwargs['grad_l_wrt_yn'], grad_y_wrt_b_or_z_tilda) # dim: 1 x M
+                grad_l_wrt_z_tilda = np.dot(grad_l_wrt_yn, grad_y_wrt_b_or_z_tilda) # dim: 1 x M
 
             # This part same for with and without batch norm layer
             grad_z_tilda_wrt_z =  relu_grad(self.layers[layer_number - 1].z)   # M x 1
