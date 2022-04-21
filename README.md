@@ -37,6 +37,15 @@ Each models NN1 and NN2 contains layers and W. You can store weights in layers.W
 └── README.md
 ```
 
+# NN4 Backprop Images
+
+Here is how I did the backprop for NN4 with batchnorm and dropout. Code for backprop is based on these formulas.
+
+![board1](./readme_images/board1.jpg)
+
+![board2](./readme_images/board2.jpg)
+
+
 ## Run test cases
 
 # To run the test cases for activations.py file, run the following command and all tests should pass
